@@ -1,12 +1,20 @@
-import React, { useEffect , useState } from "react";
+import React, { useContext, useEffect , useRef, useState } from "react";
 import styled from "styled-components";
 import ALBUM from "../../image/album.jpg"
+import AxiosMini from "../../api/AxiosMini";
+import {FaPlay, FaPause} from 'react-icons/fa';
+// import Player from "../PlayList/Player";
+import PlayMusic from "../PlayList/PlayMusic";
+import Home from "../Home";
+import PlayerPlay, { Player, PlayerPause } from "../PlayList/Player";
+import { UserContext } from "../../context/UserInfo";
+import {BsHeart, BsHeartFill} from 'react-icons/bs';
 
 const Body = styled.div`
 margin: 0;
 padding: 0;
 width: 100%;
-height: calc(100vh - 280px);
+height: calc(100vh - 330px);
 display: flex;
 justify-content: flex-start;
 align-items: center;
@@ -17,7 +25,7 @@ background-color: black;
 ::-webkit-scrollbar {
     display: none;
 }
-`
+`;
 const Container_in = styled.div`
 margin: 8px 18px 8px 8px;
 width: 100%;
@@ -59,9 +67,11 @@ img{
     width: 100px;
 }
 .play{
-    font-size: 30px;
-    background-color: rgba(0,0,0,0);
+    color: white;
+    font-size: 25px;
+    background-color : rgba(0,0,0,0);
     border: none;
+    margin-right: 50px;
 }
 .stop{
     font-size: 30px;
@@ -71,115 +81,71 @@ img{
     text-align: center;
     font-size: 40px;
 }
-`
+.heart {
+    color: white;
+    font-size: 1.7rem;
+    margin-right: 65px;
+}
+`;
+
 
 const TOP100=()=>{
+    const context = useContext(UserContext);
+    const {playing, setPlaying} = context;
 
+    const[clicked, setClicked] = useState(false);
+    const [chart, setChart] = useState([]);
+    const [clickIndex, setClickIndex] = useState(-1);
+    const [selectSong, setSelectSong] = useState("");
+    const [playingIndex, setPlayingIndex] = useState(-1); // 현재 재생중인 곡의 인덱스, -1이면 재생중인 곡이 없는 것을 의미
+    const [isplaying, setIsPlaying] = useState(false); // 재생 상태
+    const elemAudio = useRef(null); // audio 요소 참조
+
+    useEffect(()=> {
+        const chartSong = async() => {
+            const rsp = await AxiosMini.songChart("ALL");
+            if(rsp.status === 200) setChart(rsp.data); 
+        };
+        chartSong();
+    }, []);
+    
+    const clickHeart = () =>{
+        setClicked(!clicked);
+    }
+
+    const playPause = (index) => {
+        if(isplaying && playingIndex === index) { // 현재 재생중이고 인덱스가 같으면
+            setIsPlaying(false);    // 재생상태를 false로 변경
+            setPlaying(false);
+            setPlayingIndex(-1);    // 재생 중인 곡의 인덱스를 -1로 변경
+            elemAudio.current.pause();  // 곡을 멈춤
+        } else {
+            setIsPlaying(true);     // 재생상태를 true로 변경
+            setPlaying(true);
+            setPlayingIndex(index);     // 재생 중인 곡의 인덱스를 변경
+            setSelectSong(chart[index].song_url);
+            elemAudio.current.src = chart[index].song_url;  // audio의 src를 해당 곡의 url로 변경
+            elemAudio.current.play();   // 곡 재생
+        }
+    };
 
     return(
         <Body>
-        <Container_in>
-            <div className="ranking">1.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">2.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">3.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">4.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">5.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">6.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">7.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">8.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">9.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
-        <Container_in>
-            <div className="ranking">10.</div>
-            <img src={ALBUM}/>
-            <div className="TITLE">Music is Power</div>      
-            <div className="artist">VASCO</div>
-            <div className="minute">4:05</div>           
-            <div className="play">▶</div>
-            <div className="stop"></div>           
-            <div className="more">:</div>
-        </Container_in>
+
+            {chart && chart.map((x, index) => (
+            <Container_in key={x.id}>
+                <div className="ranking">{index+1}</div>                
+                <img src={x.cover_url}/>
+                <div className="TITLE">{x.title}</div>      
+                <div className="artist">{x.artist}</div>
+                {/* <div className="heart"><BsHeart /></div>            */}
+                {clicked && clickIndex === index ?<BsHeartFill className="heart" onClick={clickHeart}/> : <BsHeart className="heart" onClick={clickHeart}/>}
+                {isplaying && playingIndex === index ? <FaPause className="play" onClick={()=>playPause(index)}/> : <FaPlay className="play" onClick={()=>playPause(index)}/>}
+                <audio ref={elemAudio}/>          
+            </Container_in>
+            ))}
         </Body>
+        
     );
 }
-
 export default TOP100;

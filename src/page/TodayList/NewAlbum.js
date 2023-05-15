@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import ALBUM from "../../image/JISOO.png";
 
@@ -65,7 +65,9 @@ img{
 }
 `;
 
+
 const NewAlbum = () =>{
+    const [currentSong, setCurrentSong] = useState(null);
   
     return(
         <Body>
@@ -74,7 +76,7 @@ const NewAlbum = () =>{
                 <img src={ALBUM}/>
                 <div className="TITLE">꽃</div>      
                 <div className="artist">지수(JISOO)</div>
-            </div>
+            </div> 
         </Container_in>
         <Container_in>
             <div className="view">

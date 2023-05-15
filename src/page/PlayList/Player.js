@@ -1,10 +1,16 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {BsFillPlayFill, BsFillPauseFill, BsFillSkipStartFill, BsFillSkipEndFill } from 'react-icons/bs'
 import styled from "styled-components";
+import useSound from "use-sound";
+import image from "../PlayList/image"
+
 
 const PlayerContainer = styled.div`
     width: 100%;
+    height: 40px;
     padding-bottom: 10px;
+    background-color: gray;
+    z-index: 100;
     /* padding: 10px; */
     /* border: 1px solid gray; */
     /* color: rgb(218, 218, 218); */
@@ -12,12 +18,8 @@ const PlayerContainer = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    /* position: relative; */
-    position: absolute;
-    bottom: 0;
     box-sizing: border-box;
-    background-color: rgba(31, 31, 31, 1);
-    /* background-color: aliceblue; */
+    /* background-color: rgba(31, 31, 31, 1); */
 
     .title {
         font-size: 20px;
@@ -29,9 +31,10 @@ const PlayerContainer = styled.div`
         width: 100%;
         .navigation_wrapper {
             min-width: 100%;
-            background-color: aliceblue;
-            height: 3px;
+            /* background-color: aliceblue; */
+            height: 5px;
             margin-bottom: 10px;
+            cursor: pointer;
 
             .seek_bar {
                 width: 0;
@@ -44,20 +47,21 @@ const PlayerContainer = styled.div`
         font-size: inherit;
         display: flex;
         align-items: center;
+        justify-content: center;
 
         .btn_action {
-            font-size: 2rem;
+            font-size: 1.9rem;
             margin: 0 2rem;
             color: white;
             cursor: pointer;
 
             &:hover {
-                font-size: 2.3rem;
+                font-size: 2rem;
             }
         }
 
         .btn_action_pp {
-            font-size: 3rem;
+            font-size: 2.1rem;
             color: rgb(255, 19, 80);
             cursor: pointer;
         }
@@ -65,53 +69,21 @@ const PlayerContainer = styled.div`
 `;
 
 
-const Player = ({audioElem, isplaying, setIsPlaying, currAlbum, setCurrAlbum, albumData}) => {
-    
-    const playPause = () => {
-        setIsPlaying(!isplaying);
-    }
 
-    const skipBack = () => {
-        const index = albumData.findIndex(x=>x.title == currAlbum.title);
-        if(index == 0) {
-            setCurrAlbum(albumData[albumData.length-1])
-        }
-        else {
-            setCurrAlbum(albumData[index - 1]);
-        }
-    }
+export const Player = ({isplaying}) => {
 
-    const skipNext = () => {
-        const index = albumData.findIndex(x=>x.title == currAlbum.title);
-        if(index == albumData.length-1) {
-            setCurrAlbum(albumData[0])
-        }
-        else {
-            setCurrAlbum(albumData[index + 1]);
-        }
-    }
+
+    console.log(isplaying);
 
     return (
         <PlayerContainer>
-            <div className="navigation">
-                <div className="navigation_wrapper">
-                    <div className="seek_bar" style={{width:'50%'}}></div>
-                </div>
-            </div>
-            <div className="title">{currAlbum.title}
-                {/* <p>{currAlbum.title}</p> */}
-                {/* <p>{currAlbum.artist}</p> */}
-            </div>
-            
             <div className="controls">
-                <BsFillSkipStartFill className="btn_action" onClick={skipBack} />
-                {isplaying ? <BsFillPauseFill className="btn_action_pp" onClick={playPause}/>
-                : <BsFillPlayFill className="btn_action_pp" onClick={playPause} />}
-                <BsFillSkipEndFill className="btn_action" onClick={skipNext} />
+                <BsFillSkipStartFill className="btn_action" />
+            {isplaying? <BsFillPauseFill className="btn_action_pp" /> : <BsFillPlayFill className="btn_action_pp" />}    
+                <BsFillSkipEndFill className="btn_action" />
             </div>
-           
-            
         </PlayerContainer>
+        
     );
 }
 

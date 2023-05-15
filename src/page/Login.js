@@ -1,12 +1,12 @@
-import React, { useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 import Logo from "../image/로고.png";
-import { useState , useContext} from "react";
+import { useState , useContext, useEffect} from "react";
 import { useNavigate,Link } from "react-router-dom";
 import AxiosApi from "../api/AxiosMini";
 import Modal from "../util/Modal";
 import { UserContext } from "../context/UserInfo";
-import SignUp from "./SingUp/signUp";
+
 
 
 
@@ -76,22 +76,26 @@ font-size:15px;
 background-color:rgb(255,255,255) ;
 &:hover{
     border: 2px solid #BB2649;
-}`
-
+}
+`
 
 
 const LoginPage =()=>{
+ 
     //네비게이트를 설정하여 다시 home화면으로 돌아갈 수 있게 한다.
     const navigate = useNavigate();
     //Context API에 값을 저장한다.
     const context = useContext(UserContext);
-    const {setUserId, setPassword,setIsLogin} = context;   
+    const {setUserId, setPassword,setIsLogin } = context;   
     //id와 pw를 입력받는다.
     const [inputId,setInputId] = useState("");    
     const [inputPw,setInputPw] = useState("");
     //팝업을 띄울 Modal 을 설정한다.
     const [modalOpen,setModalOpen] = useState(false);
+   
 
+    window.localStorage.setItem("isLoginSuv", "FALSE");
+    window.localStorage.setItem("userIdSuv", "");
     
     const closeModal = () =>{
       setModalOpen(false);
@@ -104,18 +108,20 @@ const LoginPage =()=>{
     const onChangePw = (e) => {
         setInputPw(e.target.value)
     }
+    
+
     //onClick시 실행
     const onClickLogin = async() =>{ 
         // 로그인을 위해 axios 호출 JAVA를 통해 DB를 갔다온다.
-        console.log(inputId);
-        console.log(inputPw);
         const response = await AxiosApi.memberLogin(inputId,inputPw);
         console.log(response.data);
         if(response.data===true){
             //들어온 id,pw 를 ContextApi에 저장.
             setUserId(inputId);
             setPassword(inputPw);
-            setIsLogin("TRUE");
+            //로그인시 유저아이디와 로그인여부에 값을 바꿔준다.
+            window.localStorage.setItem("isLoginSuv", "TRUE");
+            window.localStorage.setItem("userIdSuv", inputId);
             //로그인 성공시 home화면으로 돌아간다.
             navigate ("/");
         } else {
@@ -123,6 +129,12 @@ const LoginPage =()=>{
             setModalOpen(true);
         }
     }
+    // const localId = window.localStorage.getItem("userId");
+    // const localPw = window.localStorage.getItem("userPw");
+
+
+
+
     
 
     return(  
@@ -138,7 +150,7 @@ const LoginPage =()=>{
                 <Input placeholder="Password" value ={inputPw} onChange={onChangePw}/>
                 
                 <Container></Container>
-                <Button onClick={onClickLogin} >LOGIN</Button>
+                <Button  onClick={onClickLogin} >LOGIN</Button>
                 
                 <Container></Container>
 

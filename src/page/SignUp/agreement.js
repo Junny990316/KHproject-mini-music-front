@@ -93,18 +93,18 @@ img {
 
 
 
-const Agreement = () => {
+const Agreement = () => { // 필수조건을 체크해야 버튼이 활성화 됨
     const [oneCheck, setOneCheck] = useState(false);
     const [twoCheck, setTwoCheck] = useState(false);
     
-    const oneRadio = () => {
+    const oneRadio = () => { // 첫번째 필수 체크항목
         if (oneCheck === false) {
             setOneCheck(true);
         } else {
             setOneCheck(false);
         }
     }
-    const twoRadio = () => {
+    const twoRadio = () => { // 두번째 필수 체크 항목
         if (twoCheck === false) {
             setTwoCheck(true);
         } else {
@@ -152,6 +152,7 @@ const Agreement = () => {
                     <input type="button" className="cancleBtn" value={'취소'}/>
                 </Link>
 
+                {/* 조건이 만족하면 버튼이 활성화 되어 다음 페이지로 넘어감 */}
                 <Link to="/SignUp">
                     <input disabled={!oneCheck || !twoCheck} type="button" className="comfirmBtn" value={'확인'}/>
                 </Link> 

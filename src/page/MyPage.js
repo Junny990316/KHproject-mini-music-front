@@ -37,7 +37,7 @@ button{
     display: flex;
     align-items: center;
     height: 30px;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255,255,255, 0.9);
     margin: 20px 0px 10px 10px;
     font-size: 14px;    
     font-weight: 500;
@@ -110,14 +110,14 @@ height: 100px;
 `
 
 const MyPage =()=>{
-
-    const context = useContext(UserContext);
-    const {userId} = context;
+    // const isLoginStr = window.localStorage.getItem("isLoginSuv");
+    // const context = useContext(UserContext);
+    const isUserIdSrt = window.localStorage.getItem("userIdSuv");
 
     return(
         <Container>
             <Head>
-                <div className="id">{userId}님</div>
+                <div className="id">{isUserIdSrt}님</div>
                 <button>MEMBERSHIP</button>
             </Head>
             <Body>

@@ -104,10 +104,10 @@ background-color:rgb(255,255,255) ;
 
 
 const Secession =()=>{
-
+    const navigate = useNavigate();
     //Context Api를 통해서 입력한 password값을 불러온다.
     const context = useContext(UserContext);
-    const {password} = context;
+    const {userId,password} = context;
     //패스워드 입력창에서 입력된 값을 가져온다.
     const [inputPw,setInputPw] = useState("");
     //input창에서 pw를 받아옴. 
@@ -123,6 +123,19 @@ const Secession =()=>{
         else setChange("FALSE");
         
     };
+
+    //탈퇴
+    const onClickSec= async() =>{
+        const response = await AxiosApi.memberSec(userId,inputPw);        
+        if(response.data===true){
+                console.log("탈퇴 성공");
+                //탈퇴 후 메인화면으로 돌아간다.
+                navigate("/");
+                //탈퇴 후 새로고침 되어지게 한다.
+                window.location.reload("/");
+        }
+
+    }
    
     
     return(  
@@ -162,7 +175,7 @@ const Secession =()=>{
 
                 <Container></Container>
                 {changePw === "FALSE" && <DisableButton disabled>패스워드를 입력하세요</DisableButton>}                
-                {changePw === "TRUE" && <AbleButton >COMPLETE</AbleButton>}
+                {changePw === "TRUE" && <AbleButton onClick={onClickSec}>COMPLETE</AbleButton>}
                 <Container>
                     <Link to="/"><span>Home</span></Link>
                 </Container>

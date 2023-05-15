@@ -1,9 +1,12 @@
-import React, { useState } from "react";
+import React, { useState ,useContext, useCallback} from "react";
 import styled from "styled-components";
 import imgLogo from "../../image/로고.png"
 import { useNavigate } from "react-router-dom";
 import AxiosMini from "../../api/AxiosMini";
 import Modal from "../../util/Modal";
+import PopupPostCode from "../../api/PopupPostCode";
+import { UserContext } from "../../context/UserInfo";
+
 
 
 const Container = styled.div`
@@ -42,6 +45,7 @@ const InerContainer = styled.div`
         font-size: 13px;
         font-weight: 500;
         color: white;
+        
     }
     .hint {
       display: flex;
@@ -70,6 +74,12 @@ const InerContainer = styled.div`
         margin-right: 15px;
         margin-left: 15px;
     }
+    .itemPhone {
+        width: 240px;
+        justify-content: center;
+        align-items: center;
+        margin-left: 35px;
+    }
 
     .year,
     .month,
@@ -83,8 +93,8 @@ const InerContainer = styled.div`
         margin: 10px 20px;
     }
     span {
-            color: white;
-        }
+        color: white;
+    }
     .select {
         margin-bottom: 10px;
         width: 250px;
@@ -94,7 +104,7 @@ const InerContainer = styled.div`
         border-radius: 10px;
     }
     .phoneNum {
-        width: 170px;
+        width: 240px;
         margin-bottom: 10px;
     }
     .phoneNumBtn {
@@ -133,7 +143,7 @@ const InerContainer = styled.div`
     margin-bottom: 20px;
     font-size: 30px;
     font-weight: bold;
-    width: 265px; /* 원하는 너비 설정 */
+    width: 265px;
     height: 50px;
     color: white;
     background-color: #b12548;
@@ -149,7 +159,7 @@ const InerContainer = styled.div`
     margin-bottom: 20px;
     font-size: 30px;
     font-weight: bold;
-    width: 265px; /* 원하는 너비 설정 */
+    width: 265px; 
     height: 50px;
     color: white;
     background-color: #b12548;
@@ -169,13 +179,17 @@ const InerContainer = styled.div`
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 26px;
     font-weight: bold;
-    width: 265px; /* 원하는 너비 설정 */
+    width: 265px; 
     height: 50px;
     color: white;
     background-color: #999;
     font-size: 13px;
     font-weight: 400;
     border-radius: 10px;
+  }
+  .inputEmail {
+    width: 200px;
+    margin-bottom: 10px;
   }
   `;
 
@@ -211,8 +225,26 @@ const SignUp = () => {
     const [isEmail, setIsEmail] = useState(false);
     const [isPhone, setIsPhone] = useState(false);
     const [isAddr, setIsAddr] = useState(false);
-    const [isRrn, setIsRrn] = useState(false);
+    const [isRrn, setIsRrn] = useState(false); 
 
+    //저장된 주소와 아이디값을 설정하여 주소는 받아오고 아이디값은 저장한다.
+    const context = useContext(UserContext);
+    const {addr,setSignUpId} = context;
+
+    //주소찾기 영역
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+    
+	// 팝업창 열기
+    const openPostCode = () => {
+        setIsPopupOpen(true);
+    }
+     
+	// 팝업창 닫기
+    const closePostCode = (e) => {
+        setIsPopupOpen(false);
+
+    }
 
     // 팝업
     const [modalOpen, setModalOpen] = useState(false);
@@ -221,10 +253,13 @@ const SignUp = () => {
     const closeModal = () => {
        setModalOpen(false);
     };
+
     
+    //아이디 정규식
     const onChangId =(e) => {
-        const inputIdRegex = /^[a-zA-z0-9]{4,12}$/
+        const inputIdRegex = /^[a-zA-z0-9]{4,12}$/ // 아이디 정규식
         const idCurrent = e.target.value;
+        setSignUpId(e.target.value);
         setInputId(idCurrent);
         if (!inputIdRegex.test(idCurrent)) {
             setIdMessage("4-12사이 대소문자 또는 숫자만 입력해 주세요!");
@@ -234,9 +269,9 @@ const SignUp = () => {
             setIsId(true);
         }
     }
+    //비밀번호 정규식
     const onChangePw = (e) => {
-        //const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,25}$/
-        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,25}$/
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,25}$/ // 비밀번호 정규식
         const passwordCurrent = e.target.value ;
         setInputPw(passwordCurrent);
         if (!passwordRegex.test(passwordCurrent)) {
@@ -246,13 +281,14 @@ const SignUp = () => {
             setPwMessage('안전한 비밀번호에요 : )')
             setIsPw(true);
         }        
-        
     }
+
+    //비밀번호 확인
     const onChangeConPw = (e) => {
         const passwordCurrent = e.target.value ;
-        setInputConPw(passwordCurrent);
+        setInputConPw(passwordCurrent)
         if (passwordCurrent !== inputPw) {
-            setConPwMessage('비밀 번호가 일치하지 않습니다.')
+            setConPwMessage('비밀 번호가 일치하지 않습니다.') // 입력한 비밀번호가 일치해야 함
             setIsConPw(false)
         } else {
             setConPwMessage('비밀 번호가 일치 합니다. )')
@@ -260,23 +296,24 @@ const SignUp = () => {
         }      
     }
     
-    // 정규식 체크 하기
+    // 이름 정규식
     const onChangeName = (e) => {
-        const inputNameRegex = /^[가-힣]{2,5}$/
+        const inputNameRegex = /^[가-힣]{2,5}$/ // 이름은 한글로만 2자리 이상 5자리 미만
         const nameCurrent = e.target.value;
         setInputName(nameCurrent);
-        if (!inputNameRegex.test(nameCurrent)) {
+        if (!inputNameRegex.test(nameCurrent)) { // 이름은 잘못 입력 되었을 때
             setIsName(false);
         } else {
             setIsName(true);
         }
     }
 
+    //메일 정규식
     const onChangeMail = (e) => {
         const inputEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
         const emailCurrent = e.target.value;
         setInputEmail(emailCurrent);
-        if (inputEmailRegex.test(emailCurrent)) {
+        if (inputEmailRegex.test(emailCurrent)) { // 이메일 입력이 잘 못 되었을 때
             setEmailMessage('올바른 이메일 형식입니다.')
             setIsEmail(true);
         } else {
@@ -284,11 +321,13 @@ const SignUp = () => {
             setIsEmail(false)
         } 
     }
+
+    //전화번호 정규식
     const onChangePhone = (e) => {
         const inputPhoneRegex = /^\d{3}\d{3,4}\d{4}$/
         const phoneCurrent = e.target.value;
         setInputPhone(phoneCurrent);
-        if (!inputPhoneRegex.test(phoneCurrent)) {
+        if (!inputPhoneRegex.test(phoneCurrent)) { // 전화번호 입력이 잘 못 되었을 때
             setPhoneMessage('전화번호 형식이 올바르지 않습니다.')
             setIsPhone(false)
         } else {
@@ -296,11 +335,8 @@ const SignUp = () => {
             setIsPhone(true);
         } 
     }
-    const onChangeAddr = (e) => {
-        const userAddr = e.target.value;
-        setInputAddr(userAddr);
-        setIsAddr(true);
-    }
+
+    // 주민번호 정규식
     const onChangeRrn = e => {
         const inputRrnRegex = /^\d{2}(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])\d{7}$/
         const rrnCurrent = e.target.value
@@ -314,18 +350,33 @@ const SignUp = () => {
         }
     }
 
+    const onClickEmailAuth = async() => {
+        console.log("이메일 인증 호출 : " + inputEmail);
+        const res = await AxiosMini.mailCode(inputEmail);
+        // Axios를 이용하여 서버로 inputEmail 변수에 담긴 이메일 주소를 전송하고, 
+        // 서버에서 생성한 랜덤한 인증 코드를 받아오는 API를 호출
+        console.log(res.data);
+
+    }
+  
+
     const onClickLogin = async() => {
+
         console.log("Click 회원가입");
-        // navigate('/welcome');
+        navigate('/welcome');
+        
 
         // 가입 여부 우선 확인
         const memberCheck = await AxiosMini.memberRegCheck(inputId);
         console.log("가입 가능 여부 확인 : ", memberCheck.data);
+
         // 가입 여부 확인 후 가입 절차 진행
-        
         if (memberCheck.data === true) {
             console.log("가입된 아이디가 없습니다. 다음 단계 진행 합니다.");
-            const memberReg = await AxiosMini.memberReg(inputId, inputPw, inputConPw, inputName ,inputAddr,inputEmail , inputPhone , inputRrn);
+
+
+            const memberReg = await AxiosMini.memberReg(inputId, inputPw, inputConPw, addr, inputName, inputEmail, inputPhone, inputRrn);
+            console.log(addr);
             console.log(memberReg.data.result);
             if(memberReg.data === true) {
                 navigate('/welcome');
@@ -382,19 +433,19 @@ const SignUp = () => {
             <div className="item">
                 <label htmlFor="email">이메일</label>
                 <br />
-                <input type="email" value ={inputEmail} onChange={onChangeMail}/>
+                <input className="inputEmail" type="email" value ={inputEmail} onChange={onChangeMail}/>
+                <button className="phoneNumBtn" id="phone" onClick={onClickEmailAuth}>인증</button>
+                <br />
+                <input className="phoneNumCH" type="text" id="inputNum" placeholder="인증번호 입력"/>
             </div>
             <div className="hint">
                     {inputEmail.length > 0 && (
                     <span className={`message ${isEmail ? 'success' : 'error'}`}>{emailMessage}</span>)}
             </div>
             <div className="itemBD">
-                <label className="BD">주민등록번호</label>
+            <label className="BD">주민등록번호</label>
                 <br />
                 <input type="text"  placeholder="ex)230502 3******" value={inputRrn} onChange={onChangeRrn}/>
-            </div>
-            <div className="hint">
-                    {inputId.length > 0 && <span className={`message ${isId ? 'success' : 'error'}`}>{rrnMessage}</span>}
             </div>
             <div className="itemGender">
                 <label>성별</label>
@@ -411,24 +462,29 @@ const SignUp = () => {
                 </select>
                 <br />
                 <input className="phoneNum" type="text" id="phone" placeholder="전화번호 입력" onChange={onChangePhone}/> 
-                <button className="phoneNumBtn" id="phone">인증번호</button>
-                <br />
-                <input className="phoneNumCH" type="text" id="inputNum" placeholder="인증번호 입력"/>
+                
             </div>
             <div className="addr">
-                <label className="addrLabel">주소</label>
+            <label className="addrLabel" >주소</label>
                 <br />
-                <input type="text" className="addrInput" value={inputAddr} onChange={onChangeAddr} />
+                <input type="text" className="addrInput" value={addr} />
                 <br />
                 <input type="text" className="addrFind"/>
-                <button className="addrBtn">주소 찾기</button>
+                <button className="addrBtn" onClick={openPostCode}>주소 찾기</button>
+                <div id='popupDom'>
+                {isPopupOpen && (                    
+                        <PopupPostCode onClose={closePostCode} />
+                 )} 
+                 </div>
+
             </div>
             <div className="submitBtn">
-               {(isId && isPw && isConPw && isName && isEmail && isPhone && isAddr && isRrn) ? 
+               {(isId && isPw && isConPw && isName && isEmail && isPhone && isRrn) ? 
                     <button className="enable-button" onClick={onClickLogin}>가입하기</button> :
                     <button className="disable-button">가입하기</button> }
                     <Modal open={modalOpen} close={closeModal} header="오류">{modalText}</Modal>
             </div>
+
             </InerContainer>
         </Container>
     );

@@ -1,4 +1,4 @@
-import React, {useContext} from "react";
+import React ,{ useContext}from "react";
 import imgLogo from "../../image/로고.png"
 import styled from "styled-components";
 import { Link } from "react-router-dom";
@@ -63,8 +63,9 @@ const Container = styled.div`
 
 const Welcome = () => {
     const context = useContext(UserContext);
-    const {signUpId} = context; 
+    const {signUpId} = context; // 회원가입한 아이디를 환영 문구에 띄움
 
+    
     return(
        
         <Container>

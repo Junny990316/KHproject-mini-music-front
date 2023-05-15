@@ -185,10 +185,12 @@ const Today=()=>{
             day:now.getDate(),
             hour:now.getHours(),
             min:now.getMinutes()
-        }]   
+        }]
+        
     
     return(
         <Body>
+            
             <BackHead>
                 <a href="/"><Link to="/">HOME</Link></a>
                 {isLogin==="FALSE" && <a href="#"><Link to="/Loginpage">LOGIN</Link></a>}

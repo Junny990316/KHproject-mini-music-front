@@ -1,44 +1,48 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext,  useRef, useEffect } from "react";
 import styled, {css} from "styled-components";
 import logo from "../image/로고.png"
 import { BiSearch } from "react-icons/bi";  
 import { AiOutlineUser } from "react-icons/ai";
-import Playlist from "./Playlist";
+import Playlist from "./Playlist"
 import Info from "./Info";
 import Today from "./Today";
 import Chart from "./Chart";
 import MyPage from "./MyPage";
-import { TbPlaylist } from "react-icons/tb";
-import { TbPlayerTrackPrev } from "react-icons/tb";
-import { TbPlayerTrackNext } from "react-icons/tb";
-import { TbPlayerPlay } from "react-icons/tb";
+import { TbPlayerTrackPrev, TbPlayerPause, TbPlayerPlay, TbPlaylist, TbPlayerTrackNext } from "react-icons/tb";
 import { UserContext } from "../context/UserInfo";
-import { Link } from "react-router-dom";
-
-
-
+import {  Link } from "react-router-dom";
+import AxiosApi from "../api/AxiosMini";
+import Player from "./PlayList/Player";
+import MusicInfo from "./MusicInfo";
+import useSound from "use-sound";
+import image from "./PlayList/image"
 
 const Sidemenu = [
+  //버튼을 카테고리로 분류하여 값을 쉽게 가져오기 위해 name으로 설정한다.
   { name : "Today"},
   { name : "차트"},
   { name : "이달의 정보"},
   { name : "추천플레이리스트"}
 ]
-
-
 const MyInfo = [
+  //버튼을 카테고리로 분류하여 값을 쉽게 가져오기 위해 name으로 설정한다.
   { name : "마이페이지"}
 ]
-
-
+const ContainerWhole=styled.div`
+  width:100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+`
 const Container = styled.div`
-    position: fixed;
+    height: calc(100vh - 40px);
+    /* position: fixed; */
     margin: 0;
     padding: 0;
     display: flex;
     background-color: #BB2649;
     width: 100%;
-    height: 100vh;
+    /* background-color: aliceblue; */
 `; 
 
 const Side = styled.div`
@@ -84,10 +88,7 @@ const Logindiv = styled.div`
   }
 `;
 
-
-
 const SearchBox = styled.div`
-
   width: 300px;
   height: 70px;
   display: flex;
@@ -113,15 +114,11 @@ const Icon = styled(BiSearch)`
   color : ${({ isFocus }) => (isFocus ? "black" : "gray")}; 
 `;
 
-
-
 const Ulb = styled.ul`
   flex-direction: column;
   color: white;
   list-style: none;
 `;
-
-
 const Lib = styled.li`
   margin-left: 10%;
   font-size: 15PX;
@@ -159,21 +156,14 @@ const Mainbody = styled.div`
     width: 100%;
     display: flex;
     flex-direction:column;
-    height: calc(100vh - 50px);
+    height: 100%;
 `;
 
 
 
-
 const PlayBar = styled.div`
-  background-color: #BB2649;
-  display: flex;
   width: 100%;
-  height: 40px;
-  position: absolute;
-  justify-content:space-between;
-  bottom: 0;
-  color: white;
+  height: 100%;
   .album{
     width: 50px;
   }
@@ -184,69 +174,143 @@ const PlayBar = styled.div`
   }
 `;
 
-
-
-const PlayBarse = styled.div`
-  display: flex;
-  flex-direction:row;
-  color: white;
-  .play{
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-  `; 
-
+    const LogOut=styled.div`
+        width: 300px;
+        height: 30px;
+      `;
 
 const Home =() => { 
-  //Context에서 값 읽기 
-  const context = useContext(UserContext);
-  const {userId, isLogin} = context;
+    //Context에서 값 읽기 
+    const context = useContext(UserContext);
+    const {playing, setPlaying} = context;
+    const {isLogin,setIsLogin,setSongTitle,setSongArtist,setAlbumName,setLyrics} = context;
 
-
+  
  
-    const[changeD, setChange] = useState("");
+    //버튼의 선택을 통해서 버튼의 값을 가져온다.
+    const[changeSide, setChangeSide] = useState("");
     const[sidemenu, setSidemenu] = useState("all"); 
     const[myInfo, setMyinfo] = useState("all"); 
+    
+    
+
+    const [timeUpdate, setTimeUpdate] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef(null); 
+
+  // // 재생 및 일시중지 
+  //   const changPlay = () => {
+  //     const audio = audioRef.current; 
+    
   
-  
+  //   if(isPlaying) {
+  //     audio.pause();  // 일지중지
+  //   } else {
+  //     audio.play();   // 재생
+  //   }
+
+  //   setIsPlaying(!isPlaying);
+  // };
+
+
+  // 재생 시간이 변경 될 때마다 timeUpdate 상태 업데이트 
+  const handleTimeUpdate = () => {
+    const audio = audioRef.current; 
+    const timeUpdate = audio.currentTime / audio.duration; 
+    setTimeUpdate(timeUpdate); 
+  };
+
+
+
+  // 재생 바를 클릭하면 재생 위치 업데이트 
+  // 클릭 위치를 계산하여 새로운 재생 시간 계산 
+    // const handleTimeUpdateClick = (e) =>{
+    //   const audio = audioRef.current; 
+    //   const { width, left } = e.target.getBoundingClientRect(); 
+    //   const clickX = e.clickX - left;
+    //   const newTime = (clickX / width) * audio.duration; 
+    //   audio.currentTime = newTime;  // 업데이트
+    // };
+
+    //onClick을 통해서 가져온 값을 해당하는 구역에 기입 한다. 
     const onSelect = q =>{
-      setChange(q);
+      setChangeSide(q);
       setSidemenu(q); 
       setMyinfo(q); 
     };
  
 
+  
 
-
-    const [isFocus, setIsFocused] = useState(false);
-
-    const clickFocus = () => {
-      setIsFocused(true);
+  const isLoginStr = window.localStorage.getItem("isLoginSuv");
+    if(isLoginStr==="TRUE"){
+       setIsLogin("TRUE");
+    }else{
+     setIsLogin("FALSE");
     };
   
-    const clickBlur = () => {
-      setIsFocused(false);
-    };
+   //노래를 검색해서 콘솔로 url 출력
+  const [inputSongName,setInPutSongName] =useState("");
+  const [inputArtName,setInPutArtName] =useState("");
+  const [songUrl, setSongUrl] =useState("");
+//엔터키를 눌러야 onFindSong이 실행되게 한다.
+const onEnter=(e)=>{
+  if(e.key==='Enter'){
+    onFindSong();
+    setChangeSide("Enter");
+  }
+}
+
+
+
+//비동기 통신으로 받아온 노래 이름과 아티스트 이름으로 URL을 검색한다.
+const onFindSong=async()=>{
+  const songFind = await AxiosApi.songFind(inputSongName);
+  console.log(inputSongName);
+  console.log("여기까지");
+  console.log(songFind.data);
+  setAlbumName(songFind.data[0].albumName);
+  setSongArtist(songFind.data[0].artist);
+  setSongTitle(songFind.data[0].title);
+  setLyrics(songFind.data[0].lyrics);
+}
+//노래 이름을 검색
+  const onChangeSong =e=>{
+    setInPutSongName(e.target.value);
+  }
+
+
   
-    // className="ment" 
-  
+ const onLogOut=()=>{
+        window.localStorage.setItem("userIdSuv", "");
+        window.localStorage.setItem("isLoginSuv", "FALSE");
+        window.location.replace("/");
+      };
+
 
     return(
+      <ContainerWhole>
         <Container>
           <Side>
            <a href="/"> <img src={logo} alt=""/></a>
-              <Logindiv>
-                {isLogin==="FALSE" && <Link to="/Loginpage" className="LoginBtn">로그인</Link>}
+              <Logindiv>  
+              {isLogin==="FALSE" && <Link to="/Loginpage" className="LoginBtn"><AiOutlineUser/>로그인</Link>}
                 {MyInfo.map(l=>(
                     isLogin ==="TRUE" && 
-                    <Button to="/Mypage" className="LoginBtn"  key={l.name} active={myInfo === l.name} onClick={()=>setChange(l.name)} > 
+                    <Button to="/Mypage" className="LoginBtn"  key={l.name} active={myInfo === l.name} onClick={()=>setChangeSide(l.name)} > 
                        {l.name}
                     </Button>
                 ))}
-                    <SearchBox>
-                      <SearchInput type="text" placeholder=" aEL 검색" 
-                          onFocus={clickFocus} onBlur={clickBlur} />
-                    </SearchBox>
+                <div>
+                    {isLogin==="FALSE"}
+                    {isLogin==="TRUE" && <LogOut onClick={onLogOut}>로그 아웃</LogOut>}
+                                    
+              </div>
+                <SearchBox>
+                  <Icon className="icon" />
+                  <SearchInput type="text" placeholder="노래 검색" 
+                  onKeyDown={onEnter} value={inputSongName} onChange={onChangeSong}/>
+                </SearchBox>
               </Logindiv>
               {Sidemenu.map( s=>(
                 <Button key={s.name} active={sidemenu === s.name}onClick={()=>onSelect(s.name)}>
@@ -259,28 +323,26 @@ const Home =() => {
               </Ulb>
           </Side> 
           <Mainbody>  
-                {changeD === "마이페이지" && <MyPage/>} 
-                {changeD === "" && <Today/>} 
-                {changeD === "Today" && <Today/>}    
-                {changeD === "차트" && <Chart/>}      
-                {changeD === "이달의 정보" && <Info/>}  
-                {changeD === "추천플레이리스트" && <Playlist/>}        
+                {changeSide === "" && <Today/>} 
+                {changeSide === "마이페이지" && <MyPage/>} 
+                {changeSide === "Today" && <Today/>}    
+                {changeSide === "차트" && <Chart/>}      
+                {changeSide === "이달의 정보" && <Info/>}  
+                {changeSide === "추천플레이리스트" && <Playlist/>}     
+                {changeSide === "Enter" && <MusicInfo/>} 
           </Mainbody>
-
-
-          <PlayBar>
-            <Link to="/Main"> <img className="album" src={logo} alt=""/></Link>
-            <PlayBarse>
-            <div ><TbPlayerTrackPrev size="30"/></div>
-            <div className="play"><TbPlayerPlay size="30"/></div>
-            <div ><TbPlayerTrackNext size="30"/></div>
-          </PlayBarse>
-          <Link to="/Main">  <div className="list" ><TbPlaylist size="30" /></div></Link>
-          </PlayBar>
-
-        </Container>  
-    );
+        </Container> 
+        
+          
+            <PlayBar>
+            
+            <Player isplaying={playing} />
+            </PlayBar>
+        
+      </ContainerWhole>
+  );
 };
+
 
 
 export default Home;

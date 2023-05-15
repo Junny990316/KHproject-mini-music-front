@@ -13,7 +13,7 @@ const Body = styled.div`
 margin: 0;
 padding: 0;
 width: calc(100vw - 300px);
-height: 100vh;
+height: calc(100vh - 40px);
 display: flex;
 justify-content: flex-start;
 align-items: center;
@@ -51,6 +51,16 @@ a{
     justify-content: center;
     text-align: center;
     font-weight:bold;
+}
+.logout{
+    margin-left: 8px;
+    font-size: 12px;
+    border-radius: 10px;
+    background-color: rgb(0,0,0, .0);
+    color: #BB2649;
+    font-weight: bolder;
+    border: none;
+    cursor: pointer;
 }
 `;
 
@@ -122,7 +132,6 @@ justify-content: flex-end;
 align-items: center;
 width: 100%;
 height: 90px;
-border-bottom:2px solid #BB2649;
 
 div{
     color: white;
@@ -169,9 +178,10 @@ padding: 0;
 
 
 const Chart=()=>{
+   
     //ConText API를 통해서 저장된 id를 가져온다.
     const context = useContext(UserContext);
-    const {userId,isLogin} = context;
+    const {isLogin, setIsLogin} = context;
     //날짜를 설정하여 업데이트를 현시간으로 설정하게 한다.
     const now = new Date();
     //버튼의 선택을 통해서 버튼의 값을 가져온다.
@@ -191,13 +201,30 @@ const Chart=()=>{
             hour:now.getHours(),
             min:now.getMinutes()
         }]   
+
+
+   
     
+    //로컬스토리지 로그인 true false값을 통해 contextAPi값을 변경해준다.
+    const isLoginStr = window.localStorage.getItem("isLoginSuv");
+    if(isLoginStr==="TRUE"){
+        setIsLogin("TRUE");
+    }
+    //기존 ContextApi로 받아오던 {userId} 값 대신 {isUserIdSrt} 를 사용한다.
+    const isUserIdSrt = window.localStorage.getItem("userIdSuv");
+        const onClickLogout = () => {
+            console.log("Logout 추가");
+            window.localStorage.setItem("userIdSuv", "");
+            window.localStorage.setItem("userPw", "");
+            window.localStorage.setItem("isLogin", "FALSE");
+            window.location.replace("/");
+        }
     return(
         <Body>
             <BackHead>
                 <a href="/"><Link to="/">HOME</Link></a>
                 {isLogin==="FALSE" && <a href="#"><Link to="/Loginpage">LOGIN</Link></a>}
-                {isLogin==="TRUE" && <a href="#" className="logTrue">반갑습니다 {userId}님</a>}
+                {isLogin==="TRUE" && <a href="#" className="logTrue">반갑습니다 {isUserIdSrt}님<button className="logout" onClick={onClickLogout}>로그아웃</button></a>}
             </BackHead>
             <Head>
             {categories.map(c=>(
